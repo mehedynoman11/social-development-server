@@ -42,6 +42,12 @@ app.get('/upcoming-event', async (req, res) => {
     res.send(result);
 })
 
+app.get('/upcoming-event/:id', async (req, res) => {
+    const id = req.params.id;
+    const result = await events.findOne(new ObjectId(id));
+    res.send(result);
+})
+
 app.listen(port, () => {
   console.log(`App listening on port ${port} at ${date.toTimeString()}`)
 })
