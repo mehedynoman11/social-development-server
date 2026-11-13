@@ -28,24 +28,29 @@ const db = connectToClient.db("social-development-server");
 const events = db.collection("events-data");
 
 app.get('/', (req, res) => {
-    res.send({msg: `Server is running at ${date.toTimeString()}`})
+  res.send({ msg: `Server is running at ${date.toTimeString()}` })
 })
 
-app.post('/create-event', async (req, res) =>{
-    const data = req.body;
-    const result = await events.insertOne(data);
-    res.send(result)
+app.post('/create-event', async (req, res) => {
+  const data = req.body;
+  const result = await events.insertOne(data);
+  res.send(result)
 })
 
 app.get('/upcoming-event', async (req, res) => {
-    const result = await events.find().toArray();
-    res.send(result);
+  // const result = await events.find().toArray();
+  // res.send(result);
+  const result = await events
+    .find()
+    .sort({ eventDate: -1 })   // -1 = newest first, 1 = oldest first
+    .toArray();
+  res.send(result);
 })
 
 app.get('/upcoming-event/:id', async (req, res) => {
-    const id = req.params.id;
-    const result = await events.findOne(new ObjectId(id));
-    res.send(result);
+  const id = req.params.id;
+  const result = await events.findOne(new ObjectId(id));
+  res.send(result);
 })
 
 app.listen(port, () => {
