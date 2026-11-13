@@ -27,6 +27,15 @@ const connectToClient = await connectToMongoDB();
 const db = connectToClient.db("social-development-server");
 const events = db.collection("events-data");
 
+const updatableEventFields = [
+  'title',
+  'description',
+  'eventType',
+  'image',
+  'location',
+  'eventDate',
+];
+
 app.get('/', (req, res) => {
   res.send({ msg: `Server is running at ${date.toTimeString()}` })
 })
@@ -42,7 +51,7 @@ app.get('/upcoming-event', async (req, res) => {
   // res.send(result);
   const result = await events
     .find()
-    .sort({ eventDate: -1 })   // -1 = newest first, 1 = oldest first
+    .sort({ eventDate: -1 })
     .toArray();
   res.send(result);
 })
@@ -50,6 +59,22 @@ app.get('/upcoming-event', async (req, res) => {
 app.get('/upcoming-event/:id', async (req, res) => {
   const id = req.params.id;
   const result = await events.findOne(new ObjectId(id));
+  res.send(result);
+})
+
+app.patch('/upcoming-event/:id', async (req, res) => {
+  const id = req.params;
+  const data = req.body;
+  const result = await events.updateOne(
+    { _id: new ObjectId(id) },
+    { $set: data }
+  )
+  res.json(result)
+})
+
+app.delete('/upcoming-event/:id', async (req, res) => {
+  const id = req.params;
+  const result = await events.deleteOne({ _id: new ObjectId(id) });
   res.send(result);
 })
 
