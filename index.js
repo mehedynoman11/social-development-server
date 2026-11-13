@@ -51,7 +51,7 @@ app.get('/upcoming-event', async (req, res) => {
   // res.send(result);
   const result = await events
     .find()
-    .sort({ eventDate: -1 })
+    .sort({ _id: -1 })
     .toArray();
   res.send(result);
 })
