@@ -78,6 +78,12 @@ app.delete('/upcoming-event/:id', async (req, res) => {
   res.send(result);
 })
 
+app.get('/manage-events/:email', async (req, res) => {
+  const {email} = req.params;
+  const result = await events.find({email: email}).toArray();
+  res.send(result);
+})
+
 app.listen(port, () => {
   console.log(`App listening on port ${port} at ${date.toTimeString()}`)
 })
