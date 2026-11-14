@@ -2,8 +2,7 @@ import express from 'express'
 import dotenv from 'dotenv/config'
 import { MongoClient, ObjectId } from 'mongodb';
 import cors from 'cors'
-// import cors from 'cors'
-// import { createRemoteJWKSet, jwtVerify } from 'jose';
+import { createRemoteJWKSet, jwtVerify } from 'jose';
 
 
 const app = express()
@@ -27,26 +26,39 @@ const connectToClient = await connectToMongoDB();
 const db = connectToClient.db("social-development-server");
 const events = db.collection("events-data");
 
-const updatableEventFields = [
-  'title',
-  'description',
-  'eventType',
-  'image',
-  'location',
-  'eventDate',
-];
+const verifyToken = async (req, res, next) => {
+  const authHeader = req.headers.authorization;
+  if (!authHeader) {
+    return res.status(401).send({ msg: "Unauthorized" })
+  }
+  const token = authHeader.split(" ")[1];
+  // console.log(token)
+  if (!token) {
+    return res.status(401).send({ msg: "unautorized" });
+  }
+
+  //  const JWKS = createRemoteJWKSet(new URL(`${process.env.CLIENT_URL}/api/auth/jwks`))
+  // try {
+  //   const { payload } = await jwtVerify(token, JWKS);
+  //   next();
+  // } catch (error) {
+  //   return res.status(500).send({ msg: "Server Error!" });
+  // }
+
+  next()
+}
 
 app.get('/', (req, res) => {
   res.send({ msg: `Server is running at ${date.toTimeString()}` })
 })
 
-app.post('/create-event', async (req, res) => {
+app.post('/create-event', verifyToken, async (req, res) => {
   const data = req.body;
   const result = await events.insertOne(data);
   res.send(result)
 })
 
-app.get('/upcoming-event', async (req, res) => {
+app.get('/upcoming-event',async (req, res) => {
   // const result = await events.find().toArray();
   // res.send(result);
   const result = await events
@@ -62,7 +74,7 @@ app.get('/upcoming-event/:id', async (req, res) => {
   res.send(result);
 })
 
-app.patch('/upcoming-event/:id', async (req, res) => {
+app.patch('/upcoming-event/:id',verifyToken, async (req, res) => {
   const id = req.params;
   const data = req.body;
   const result = await events.updateOne(
@@ -72,17 +84,29 @@ app.patch('/upcoming-event/:id', async (req, res) => {
   res.json(result)
 })
 
-app.delete('/upcoming-event/:id', async (req, res) => {
+app.delete('/upcoming-event/:id', verifyToken,async (req, res) => {
   const id = req.params;
   const result = await events.deleteOne({ _id: new ObjectId(id) });
   res.send(result);
 })
 
 app.get('/manage-events/:email', async (req, res) => {
-  const {email} = req.params;
-  const result = await events.find({email: email}).toArray();
+  const { email } = req.params;
+  const result = await events.find({ email: email }).toArray();
   res.send(result);
 })
+
+app.post('/upcoming-event/:id/join', async (req, res) => {
+  const session = await auth.api.getSession({ headers: fromNodeHeaders(req.headers) });
+  if (!session?.user) return res.status(401).json({ error: 'Unauthorized' });
+
+  const result = await events.updateOne(
+    { _id: new ObjectId(req.params.id) },
+    { $addToSet: { joinedBy: session.user.id } }  // ✅ $addToSet = no duplicates
+  );
+
+  res.json(result);
+});
 
 app.listen(port, () => {
   console.log(`App listening on port ${port} at ${date.toTimeString()}`)
