@@ -57,10 +57,13 @@ app.post('/create-event', verifyToken, async (req, res) => {
 })
 
 app.get('/upcoming-event', async (req, res) => {
-  // const result = await events.find().toArray();
-  // res.send(result);
+  const today = new Date();
   const result = await events
-    .find()
+    .find({
+            eventDate: {
+                $gte: today.toISOString()
+            }
+        })
     .sort({ _id: -1 })
     .toArray();
   res.send(result);
