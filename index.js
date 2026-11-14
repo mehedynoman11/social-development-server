@@ -94,18 +94,8 @@ app.get('/manage-events/:email',verifyToken ,async (req, res) => {
   res.send(result);
 })
 
-// app.post('/upcoming-event/:id/join', async (req, res) => {
-//   const session = await auth.api.getSession({ headers: fromNodeHeaders(req.headers) });
-//   if (!session?.user) return res.status(401).json({ error: 'Unauthorized' });
-
-//   const result = await events.updateOne(
-//     { _id: new ObjectId(req.params.id) },
-//     { $addToSet: { joinedBy: session.user.id } }  // ✅ $addToSet = no duplicates
-//   );
-
-//   res.json(result);
-// });
-
 app.listen(port, () => {
   console.log(`App listening on port ${port} at ${date.toTimeString()}`)
 })
+
+export default app;
