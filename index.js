@@ -32,7 +32,6 @@ const verifyToken = async (req, res, next) => {
     return res.status(401).send({ msg: "Unauthorized" })
   }
   const token = authHeader.split(" ")[1];
-  // console.log(token)
   if (!token) {
     return res.status(401).send({ msg: "unautorized" });
   }
@@ -41,7 +40,6 @@ const verifyToken = async (req, res, next) => {
 
   try {
     const {payload} = await jwtVerify(token, JWKS)
-    console.log(payload);
     next();
   } catch (error) {
     return res.status(500).send({ msg: "Server Error!" });
