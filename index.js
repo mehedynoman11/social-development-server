@@ -37,15 +37,15 @@ const verifyToken = async (req, res, next) => {
     return res.status(401).send({ msg: "unautorized" });
   }
 
-  //  const JWKS = createRemoteJWKSet(new URL(`${process.env.CLIENT_URL}/api/auth/jwks`))
-  // try {
-  //   const { payload } = await jwtVerify(token, JWKS);
-  //   next();
-  // } catch (error) {
-  //   return res.status(500).send({ msg: "Server Error!" });
-  // }
+  const JWKS = createRemoteJWKSet(new URL('http://localhost:3000/api/auth/jwks'));
 
-  next()
+  try {
+    const {payload} = await jwtVerify(token, JWKS)
+    console.log(payload);
+    next();
+  } catch (error) {
+    return res.status(500).send({ msg: "Server Error!" });
+  }
 }
 
 app.get('/', (req, res) => {
@@ -58,7 +58,7 @@ app.post('/create-event', verifyToken, async (req, res) => {
   res.send(result)
 })
 
-app.get('/upcoming-event',async (req, res) => {
+app.get('/upcoming-event', async (req, res) => {
   // const result = await events.find().toArray();
   // res.send(result);
   const result = await events
@@ -74,7 +74,7 @@ app.get('/upcoming-event/:id', async (req, res) => {
   res.send(result);
 })
 
-app.patch('/upcoming-event/:id',verifyToken, async (req, res) => {
+app.patch('/upcoming-event/:id', verifyToken, async (req, res) => {
   const id = req.params;
   const data = req.body;
   const result = await events.updateOne(
@@ -84,29 +84,29 @@ app.patch('/upcoming-event/:id',verifyToken, async (req, res) => {
   res.json(result)
 })
 
-app.delete('/upcoming-event/:id', verifyToken,async (req, res) => {
+app.delete('/upcoming-event/:id', verifyToken, async (req, res) => {
   const id = req.params;
   const result = await events.deleteOne({ _id: new ObjectId(id) });
   res.send(result);
 })
 
-app.get('/manage-events/:email', async (req, res) => {
+app.get('/manage-events/:email',verifyToken ,async (req, res) => {
   const { email } = req.params;
   const result = await events.find({ email: email }).toArray();
   res.send(result);
 })
 
-app.post('/upcoming-event/:id/join', async (req, res) => {
-  const session = await auth.api.getSession({ headers: fromNodeHeaders(req.headers) });
-  if (!session?.user) return res.status(401).json({ error: 'Unauthorized' });
+// app.post('/upcoming-event/:id/join', async (req, res) => {
+//   const session = await auth.api.getSession({ headers: fromNodeHeaders(req.headers) });
+//   if (!session?.user) return res.status(401).json({ error: 'Unauthorized' });
 
-  const result = await events.updateOne(
-    { _id: new ObjectId(req.params.id) },
-    { $addToSet: { joinedBy: session.user.id } }  // ✅ $addToSet = no duplicates
-  );
+//   const result = await events.updateOne(
+//     { _id: new ObjectId(req.params.id) },
+//     { $addToSet: { joinedBy: session.user.id } }  // ✅ $addToSet = no duplicates
+//   );
 
-  res.json(result);
-});
+//   res.json(result);
+// });
 
 app.listen(port, () => {
   console.log(`App listening on port ${port} at ${date.toTimeString()}`)
